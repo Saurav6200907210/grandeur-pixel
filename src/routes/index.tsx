@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
   Menu,
@@ -25,19 +24,6 @@ import {
   ChevronRight,
   ArrowUp,
 } from "lucide-react";
-
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Grandeur — Luxury Hotel & Resort" },
-      {
-        name: "description",
-        content: "Book with the best luxury hotel. Where elegance meets extraordinary service.",
-      },
-    ],
-  }),
-  component: Index,
-});
 
 const GOLD = "#D4AF37";
 const BOOKING_EMAIL = "sonukumarteg245@gmail.com";
@@ -126,7 +112,7 @@ function smoothScrollTo(hash: string) {
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function Index() {
+export function Index() {
   const [bookingRoom, setBookingRoom] = useState<string | null>(null);
 
   useEffect(() => {
