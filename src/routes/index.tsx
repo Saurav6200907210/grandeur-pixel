@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Menu,
   X,
@@ -28,6 +28,18 @@ import {
 const GOLD = "#D4AF37";
 const BOOKING_EMAIL = "sonukumarteg245@gmail.com";
 
+type Room = {
+  img: string;
+  type: string;
+  price: string;
+  description: string;
+  guests: string;
+  view: string;
+  bed: string;
+  size: string;
+  amenities: string[];
+};
+
 const HERO_IMGS = [
   "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=2000&q=80",
   "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=2000&q=80",
@@ -42,36 +54,78 @@ const ABOUT_IMGS = [
   "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80",
 ];
 
-const ALL_ROOMS = [
+const ALL_ROOMS: Room[] = [
   {
     img: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1000&q=80",
     type: "Family Room",
     price: "₹3,499",
+    description:
+      "Spacious room designed for families with luxury bedding and ample seating areas for relaxation.",
+    guests: "Up to 4 guests",
+    view: "Garden view",
+    bed: "2 Queen beds",
+    size: "45 m²",
+    amenities: ["Free Wi-Fi", "Room service", "Mini bar", "Ocean view"],
   },
   {
     img: "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1000&q=80",
     type: "Double Room",
     price: "₹3,499",
+    description:
+      "Comfortable space for two with modern amenities, elegant décor and a private balcony.",
+    guests: "Up to 2 guests",
+    view: "City view",
+    bed: "1 King bed",
+    size: "38 m²",
+    amenities: ["Free Wi-Fi", "Breakfast included", "Smart TV", "Rain shower"],
   },
   {
     img: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1000&q=80",
     type: "Family Room",
     price: "₹3,499",
+    description:
+      "Family-friendly suite with plenty of room, premium furnishings and kid-friendly comforts.",
+    guests: "Up to 4 guests",
+    view: "Pool view",
+    bed: "2 Double beds",
+    size: "48 m²",
+    amenities: ["Free Wi-Fi", "Play area access", "Room service", "Bathtub"],
   },
   {
     img: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1000&q=80",
     type: "Deluxe Suite",
     price: "₹4,999",
+    description:
+      "Premium suite with separate living area, large bathroom and exceptional city outlook.",
+    guests: "Up to 3 guests",
+    view: "Skyline view",
+    bed: "1 King bed",
+    size: "55 m²",
+    amenities: ["Free Wi-Fi", "Jacuzzi", "Private lounge", "Complimentary minibar"],
   },
   {
     img: "https://images.unsplash.com/photo-1631049552057-403cdb8f0658?auto=format&fit=crop&w=1000&q=80",
     type: "Presidential Suite",
     price: "₹7,999",
+    description:
+      "Ultra-luxury suite with spacious living quarters, VIP services and breathtaking panoramic views.",
+    guests: "Up to 5 guests",
+    view: "Ocean view",
+    bed: "1 King bed",
+    size: "80 m²",
+    amenities: ["Butler service", "Private balcony", "Exclusive lounge", "Spa access"],
   },
   {
     img: "https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=1000&q=80",
     type: "Single Room",
     price: "₹2,499",
+    description:
+      "Cozy private room ideal for solo travelers, with premium bedding and fast internet.",
+    guests: "1 guest",
+    view: "Garden view",
+    bed: "1 Queen bed",
+    size: "28 m²",
+    amenities: ["Free Wi-Fi", "Work desk", "Coffee maker", "Daily housekeeping"],
   },
 ];
 
@@ -409,8 +463,63 @@ function About() {
 
 function Rooms({ onBook }: { onBook: (room: string) => void }) {
   const [current, setCurrent] = useState(0);
+  const [activeRoom, setActiveRoom] = useState<Room | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+
   const perViewCount = 3;
   const maxIndex = Math.max(0, ALL_ROOMS.length - perViewCount);
+
+  useEffect(() => {
+    if (activeRoom) {
+      requestAnimationFrame(() => setPanelOpen(true));
+    } else {
+      setPanelOpen(false);
+    }
+  }, [activeRoom]);
+
+  const openDetails = (room: Room) => {
+    setActiveRoom(room);
+    setPanelOpen(true);
+  };
+
+  const closePanel = () => {
+    setPanelOpen(false);
+    window.setTimeout(() => setActiveRoom(null), 300);
+  };
+
+  const bookFromPanel = () => {
+    if (!activeRoom) return;
+    closePanel();
+    window.setTimeout(() => onBook(`${activeRoom.type} — ${activeRoom.price}/Night`), 350);
+  };
+
+  const getCardWidth = () => {
+    if (!carouselRef.current) return 0;
+    const gap = parseFloat(getComputedStyle(carouselRef.current).gap) || 0;
+    const firstCard = carouselRef.current.querySelector<HTMLElement>("article");
+    if (firstCard) {
+      return firstCard.offsetWidth + gap;
+    }
+    return carouselRef.current.offsetWidth / perViewCount;
+  };
+
+  const handleScroll = () => {
+    if (!carouselRef.current) return;
+    const cardWidth = getCardWidth();
+    if (!cardWidth) return;
+    const index = Math.round(carouselRef.current.scrollLeft / cardWidth);
+    setCurrent(Math.max(0, Math.min(maxIndex, index)));
+  };
+
+  const scrollToIndex = (index: number) => {
+    if (!carouselRef.current) return;
+    const targetIndex = Math.max(0, Math.min(maxIndex, index));
+    const cardWidth = getCardWidth();
+    if (!cardWidth) return;
+    carouselRef.current.scrollTo({ left: targetIndex * cardWidth, behavior: "smooth" });
+    setCurrent(targetIndex);
+  };
 
   return (
     <section id="rooms" className="py-20 lg:py-28" style={{ backgroundColor: "#2E2E2E" }}>
@@ -432,35 +541,51 @@ function Rooms({ onBook }: { onBook: (room: string) => void }) {
         <div className="relative mt-14">
           <div
             id="rooms-carousel"
+            ref={carouselRef}
             className="flex gap-8 lg:gap-10 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4"
+            onScroll={handleScroll}
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             <style>{`#rooms-carousel::-webkit-scrollbar { display: none; }`}</style>
-            {ALL_ROOMS.map((r, i) => (
+            {ALL_ROOMS.map((room, i) => (
               <article
-                key={i}
-                className="text-white g-room-card g-reveal snap-start shrink-0 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1rem)]"
+                key={`${room.type}-${i}`}
+                className="text-white g-room-card g-reveal snap-start shrink-0 w-full md:w-[calc((100%-2rem)/2)] lg:w-[calc((100%-5rem)/3)]"
                 style={{ animationDelay: `${0.2 + i * 0.05}s` }}
               >
-                <div className="relative">
-                  <img src={r.img} alt={r.type} className="w-full h-70 object-cover" />
+                <div className="relative" onClick={() => openDetails(room)}>
+                  <img src={room.img} alt={room.type} className="w-full h-72 object-cover" />
                   <div className="g-room-card-overlay">
-                    <button
-                      onClick={() => onBook(`${r.type} — ${r.price}/Night`)}
-                      className="btn-gold text-sm"
-                    >
-                      Book Now
-                    </button>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openDetails(room);
+                        }}
+                        className="rounded-full bg-white/90 text-black px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                      >
+                        View Details
+                      </button>
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onBook(`${room.type} — ${room.price}/Night`);
+                        }}
+                        className="rounded-full px-5 py-2 text-sm font-semibold bg-gold text-black hover:bg-gold-soft transition"
+                      >
+                        Book Now
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div className="p-6">
                   <div className="flex items-baseline gap-2 mt-5">
                     <span className="font-display text-2xl font-bold" style={{ color: GOLD }}>
-                      {r.price}/
+                      {room.price}/
                     </span>
                     <span className="text-white/80 text-sm">Night</span>
                   </div>
-                  <h3 className="mt-2 font-display text-xl">{r.type}</h3>
+                  <h3 className="mt-2 font-display text-xl">{room.type}</h3>
                   <div className="mt-4 grid grid-cols-2 gap-y-3 gap-x-4" style={{ color: GOLD }}>
                     {["1-2 Persons", "Bathtub", "King Size Bed", "Free Wifi"].map((f) => (
                       <div key={f} className="flex items-center gap-2 text-sm">
@@ -480,12 +605,7 @@ function Rooms({ onBook }: { onBook: (room: string) => void }) {
           
           {current > 0 && (
             <button
-              onClick={() => {
-                const container = document.getElementById("rooms-carousel");
-                if (container) {
-                  container.scrollBy({ left: -container.offsetWidth, behavior: "smooth" });
-                }
-              }}
+              onClick={() => scrollToIndex(current - 1)}
               className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-gold text-black flex items-center justify-center hover:bg-gold-soft transition shadow-lg"
               aria-label="Previous"
             >
@@ -494,12 +614,7 @@ function Rooms({ onBook }: { onBook: (room: string) => void }) {
           )}
           {current < maxIndex && (
             <button
-              onClick={() => {
-                const container = document.getElementById("rooms-carousel");
-                if (container) {
-                  container.scrollBy({ left: container.offsetWidth, behavior: "smooth" });
-                }
-              }}
+              onClick={() => scrollToIndex(current + 1)}
               className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-gold text-black flex items-center justify-center hover:bg-gold-soft transition shadow-lg"
               aria-label="Next"
             >
@@ -511,13 +626,7 @@ function Rooms({ onBook }: { onBook: (room: string) => void }) {
             {Array.from({ length: maxIndex + 1 }).map((_, i) => (
               <button
                 key={i}
-                onClick={() => {
-                  const container = document.getElementById("rooms-carousel");
-                  if (container) {
-                    const cardWidth = container.offsetWidth / perViewCount + 40;
-                    container.scrollTo({ left: i * cardWidth, behavior: "smooth" });
-                  }
-                }}
+                onClick={() => scrollToIndex(i)}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   i === current ? "bg-gold w-8" : "bg-white/30 w-2 hover:bg-white/60"
                 }`}
@@ -527,6 +636,88 @@ function Rooms({ onBook }: { onBook: (room: string) => void }) {
           </div>
         </div>
       </div>
+      {activeRoom && (
+        <div
+          className={`fixed inset-0 z-50 flex ${panelOpen ? "justify-end" : "justify-end"}`}
+        >
+          <div
+            className={`absolute inset-0 bg-black/60 transition-opacity duration-300 ${panelOpen ? "opacity-100" : "opacity-0"}`}
+            onClick={closePanel}
+          />
+          <aside
+            className={`relative z-10 w-full max-w-md h-full bg-white text-neutral-900 shadow-2xl transform transition-transform duration-300 ease-in-out ${panelOpen ? "translate-x-0" : "translate-x-full"}`}
+          >
+            <div className="relative h-64">
+              <img src={activeRoom.img} alt={activeRoom.type} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <button
+                onClick={closePanel}
+                aria-label="Close"
+                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/50 text-white hover:bg-black/70 flex items-center justify-center transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <div className="absolute bottom-4 left-6">
+                <span className="rounded-full px-3 py-1 text-xs font-semibold text-black" style={{ backgroundColor: GOLD }}>
+                  {activeRoom.type}
+                </span>
+              </div>
+            </div>
+            <div className="p-6 overflow-y-auto" style={{ maxHeight: "calc(100vh - 16rem)" }}>
+              <div className="flex flex-wrap items-baseline gap-3">
+                <span className="font-display text-3xl font-bold" style={{ color: GOLD }}>
+                  {activeRoom.price}
+                </span>
+                <span className="text-neutral-500 text-sm">/ Night</span>
+              </div>
+              <p className="mt-4 text-neutral-700 leading-relaxed">{activeRoom.description}</p>
+              <div className="mt-5 grid grid-cols-3 gap-3">
+                <div className="rounded-xl border border-neutral-200 p-3">
+                  <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wide">Guests</p>
+                  <p className="mt-1 text-sm font-medium text-neutral-900 leading-tight">{activeRoom.guests}</p>
+                </div>
+                <div className="rounded-xl border border-neutral-200 p-3">
+                  <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wide">View</p>
+                  <p className="mt-1 text-sm font-medium text-neutral-900 leading-tight">{activeRoom.view}</p>
+                </div>
+                <div className="rounded-xl border border-neutral-200 p-3">
+                  <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wide">Bed</p>
+                  <p className="mt-1 text-sm font-medium text-neutral-900 leading-tight">{activeRoom.bed}</p>
+                </div>
+              </div>
+              <div className="mt-5">
+                <h4 className="font-display font-semibold text-neutral-900 text-sm">Size</h4>
+                <p className="mt-1 text-sm text-neutral-700">{activeRoom.size}</p>
+              </div>
+              <div className="mt-4">
+                <h4 className="font-display font-semibold text-neutral-900 text-sm">Amenities</h4>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {activeRoom.amenities.map((a) => (
+                    <span key={a} className="rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-800">
+                      {a}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <button
+                  onClick={bookFromPanel}
+                  className="rounded-full px-4 py-3 text-sm font-semibold"
+                  style={{ backgroundColor: GOLD, color: "#1a1a1a" }}
+                >
+                  Book Now
+                </button>
+                <button
+                  onClick={closePanel}
+                  className="rounded-full px-4 py-3 text-sm font-semibold border border-neutral-200 hover:bg-neutral-50 transition"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      )}
     </section>
   );
 }

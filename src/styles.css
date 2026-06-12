@@ -167,6 +167,18 @@
     transform: translateY(0);
   }
 
+  @media (pointer: coarse) {
+    .g-room-card-overlay {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .g-room-card-overlay button {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .g-about-img-wrapper {
     position: relative;
     overflow: hidden;
