@@ -28,10 +28,19 @@ import {
 const GOLD = "#D4AF37";
 const BOOKING_EMAIL = "sonukumarteg245@gmail.com";
 
-const HERO_IMG =
-  "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=2000&q=80";
+const HERO_IMGS = [
+  "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=2000&q=80",
+  "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=2000&q=80",
+  "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=2000&q=80",
+  "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=2000&q=80",
+];
 const ABOUT_IMG =
   "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80";
+const ABOUT_IMGS = [
+  "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80",
+];
 
 const ALL_ROOMS = [
   {
@@ -131,6 +140,73 @@ export function Index() {
     return () => document.removeEventListener("click", handler);
   }, []);
 
+  useEffect(() => {
+    const cursor = document.createElement("div");
+    const ring = document.createElement("div");
+    cursor.className = "g-cursor-dot";
+    ring.className = "g-cursor-ring";
+    document.body.append(cursor, ring);
+
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let ringX = mouseX;
+    let ringY = mouseY;
+
+    const isHoverTarget = (target: Element | null) =>
+      !!target?.closest("a,button,input,.g-room-card,.g-testi-card");
+
+    const onMove = (e: MouseEvent) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      cursor.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+    };
+
+    const onOver = (e: MouseEvent) => {
+      const target = (e.target as Element).closest("a,button,input,.g-room-card,.g-testi-card");
+      if (target) ring.classList.add("g-cursor-ring-hover");
+    };
+
+    const onOut = (e: MouseEvent) => {
+      const target = (e.relatedTarget as Element | null);
+      if (!isHoverTarget(target)) ring.classList.remove("g-cursor-ring-hover");
+    };
+
+    const animate = () => {
+      ringX += (mouseX - ringX) * 0.18;
+      ringY += (mouseY - ringY) * 0.18;
+      ring.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
+      requestAnimationFrame(animate);
+    };
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseover", onOver);
+    document.addEventListener("mouseout", onOut);
+    animate();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("g-reveal-in");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15 },
+    );
+
+    document.querySelectorAll(".g-reveal").forEach((el) => observer.observe(el));
+
+    return () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseover", onOver);
+      document.removeEventListener("mouseout", onOut);
+      observer.disconnect();
+      cursor.remove();
+      ring.remove();
+    };
+  }, []);
+
   return (
     <div className="bg-black text-white">
       <Hero onBook={() => setBookingRoom("General Reservation")} />
@@ -207,26 +283,76 @@ function Navbar({ onBook }: { onBook: () => void }) {
 }
 
 function Hero({ onBook }: { onBook: () => void }) {
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % HERO_IMGS.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <section id="home" className="relative min-h-[100svh] w-full overflow-hidden">
-      <img
-        src={HERO_IMG}
-        alt="Luxury hotel room"
-        className="absolute inset-0 w-full h-full object-cover"
-      />
+      {HERO_IMGS.map((img, i) => (
+        <img
+          key={i}
+          src={img}
+          alt="Luxury hotel"
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+            i === current ? "opacity-100" : "opacity-0"
+          }`}
+        />
+      ))}
       <div className="absolute inset-0 bg-black/40" />
       <Navbar onBook={onBook} />
       <div className="relative z-10 flex flex-col items-center justify-center text-center min-h-[100svh] px-6">
-        <h1 className="font-display font-bold text-white text-4xl md:text-6xl lg:text-7xl leading-tight max-w-5xl drop-shadow-lg">
+        <h1
+          className="font-display font-bold text-white text-4xl md:text-6xl lg:text-7xl leading-tight max-w-5xl drop-shadow-lg g-hero-title g-reveal"
+          style={{ animationDelay: "0.25s" }}
+        >
           Book With Best Luxury Hotel
         </h1>
-        <p className="mt-5 text-white/90 text-base md:text-lg font-medium">
+        <p
+          className="mt-5 text-white/90 text-base md:text-lg font-medium g-hero-subtitle g-reveal"
+          style={{ animationDelay: "0.5s" }}
+        >
           Where Elegance Meets Extraordinary Service
         </p>
-        <button onClick={onBook} className="btn-gold mt-10 text-base px-8 py-3">
+        <button
+          onClick={onBook}
+          className="btn-gold mt-10 text-base px-8 py-3 g-hero-cta g-reveal"
+          style={{ animationDelay: "0.75s" }}
+        >
           Reserve Now
         </button>
       </div>
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+        {HERO_IMGS.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              i === current ? "bg-gold w-8" : "bg-white/50 hover:bg-white/80"
+            }`}
+            aria-label={`Slide ${i + 1}`}
+          />
+        ))}
+      </div>
+      <button
+        onClick={() => setCurrent((prev) => (prev - 1 + HERO_IMGS.length) % HERO_IMGS.length)}
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white backdrop-blur-sm transition"
+        aria-label="Previous slide"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+      <button
+        onClick={() => setCurrent((prev) => (prev + 1) % HERO_IMGS.length)}
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white backdrop-blur-sm transition"
+        aria-label="Next slide"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
     </section>
   );
 }
@@ -243,28 +369,31 @@ function About() {
   return (
     <section id="about" className="bg-black py-20 lg:py-28">
       <div className="max-w-7xl mx-auto px-6 lg:px-10 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-        <div className="relative">
-          <img
-            src={ABOUT_IMG}
-            alt="Luxury suite"
-            className="w-full h-[500px] lg:h-[560px] object-cover"
-          />
-        </div>
+        <Carousel images={ABOUT_IMGS} />
         <div>
           <span
-            className="inline-block font-display font-semibold text-sm px-4 py-1.5 rounded"
-            style={{ backgroundColor: GOLD, color: "#1a1a1a" }}
+            className="inline-block font-display font-semibold text-sm px-4 py-1.5 rounded g-reveal"
+            style={{ backgroundColor: GOLD, color: "#1a1a1a", animationDelay: "0.2s" }}
           >
             About grandeur
           </span>
-          <h2 className="mt-6 font-display font-bold text-white text-3xl md:text-4xl lg:text-5xl leading-tight">
+          <h2
+            className="mt-6 font-display font-bold text-white text-3xl md:text-4xl lg:text-5xl leading-tight g-reveal"
+            style={{ animationDelay: "0.3s" }}
+          >
             World Class Luxury Hotel and Resort Near City
           </h2>
-          <p className="mt-6 text-white/70 leading-relaxed max-w-xl">
+          <p
+            className="mt-6 text-white/70 leading-relaxed max-w-xl g-reveal"
+            style={{ animationDelay: "0.4s" }}
+          >
             Jorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie,
             dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus
           </p>
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-4">
+          <div
+            className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-4 g-reveal"
+            style={{ animationDelay: "0.45s" }}
+          >
             {features.map((f) => (
               <div key={f.label} className="flex items-center gap-3" style={{ color: GOLD }}>
                 <f.icon className="w-5 h-5 shrink-0" />
@@ -279,8 +408,10 @@ function About() {
 }
 
 function Rooms({ onBook }: { onBook: (room: string) => void }) {
-  const [showAll, setShowAll] = useState(false);
-  const visible = showAll ? ALL_ROOMS : ALL_ROOMS.slice(0, 3);
+  const [current, setCurrent] = useState(0);
+  const perViewCount = 3;
+  const maxIndex = Math.max(0, ALL_ROOMS.length - perViewCount);
+
   return (
     <section id="rooms" className="py-20 lg:py-28" style={{ backgroundColor: "#2E2E2E" }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-10">
@@ -296,45 +427,104 @@ function Rooms({ onBook }: { onBook: (room: string) => void }) {
               The Best Luxury Rooms and Suites
             </h2>
           </div>
-          <button
-            onClick={() => setShowAll(!showAll)}
-            className="btn-gold inline-flex items-center gap-2 self-start lg:self-auto"
-          >
-            {showAll ? "Show Less" : "See All Rooms"} <ArrowUpRight className="w-4 h-4" />
-          </button>
         </div>
 
-        <div className="mt-14 grid md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-          {visible.map((r, i) => (
-            <article key={i} className="text-white">
-              <img src={r.img} alt={r.type} className="w-full h-[280px] object-cover" />
-              <div className="mt-5 flex items-baseline gap-2">
-                <span className="font-display text-2xl font-bold" style={{ color: GOLD }}>
-                  {r.price}/
-                </span>
-                <span className="text-white/80 text-sm">Night</span>
-              </div>
-              <h3 className="mt-2 font-display text-xl">{r.type}</h3>
-              <div className="mt-4 grid grid-cols-2 gap-y-3 gap-x-4" style={{ color: GOLD }}>
-                {["1-2 Persons", "Bathtub", "King Size Bed", "Free Wifi"].map((f) => (
-                  <div key={f} className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>{f}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-4 text-white/70 text-sm leading-relaxed">
-                Lorem ipsum dolor sit amet consectetur adipiscing elit aliquet et vivamus nostra
-                torquent porttito
-              </p>
-              <button
-                onClick={() => onBook(`${r.type} — ${r.price}/Night`)}
-                className="btn-gold mt-5 text-sm"
+        <div className="relative mt-14">
+          <div
+            id="rooms-carousel"
+            className="flex gap-8 lg:gap-10 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            <style>{`#rooms-carousel::-webkit-scrollbar { display: none; }`}</style>
+            {ALL_ROOMS.map((r, i) => (
+              <article
+                key={i}
+                className="text-white g-room-card g-reveal snap-start shrink-0 w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1rem)]"
+                style={{ animationDelay: `${0.2 + i * 0.05}s` }}
               >
-                Book Now
-              </button>
-            </article>
-          ))}
+                <div className="relative">
+                  <img src={r.img} alt={r.type} className="w-full h-70 object-cover" />
+                  <div className="g-room-card-overlay">
+                    <button
+                      onClick={() => onBook(`${r.type} — ${r.price}/Night`)}
+                      className="btn-gold text-sm"
+                    >
+                      Book Now
+                    </button>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-baseline gap-2 mt-5">
+                    <span className="font-display text-2xl font-bold" style={{ color: GOLD }}>
+                      {r.price}/
+                    </span>
+                    <span className="text-white/80 text-sm">Night</span>
+                  </div>
+                  <h3 className="mt-2 font-display text-xl">{r.type}</h3>
+                  <div className="mt-4 grid grid-cols-2 gap-y-3 gap-x-4" style={{ color: GOLD }}>
+                    {["1-2 Persons", "Bathtub", "King Size Bed", "Free Wifi"].map((f) => (
+                      <div key={f} className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>{f}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-4 text-white/70 text-sm leading-relaxed">
+                    Lorem ipsum dolor sit amet consectetur adipiscing elit aliquet et vivamus nostra
+                    torquent porttito
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+          
+          {current > 0 && (
+            <button
+              onClick={() => {
+                const container = document.getElementById("rooms-carousel");
+                if (container) {
+                  container.scrollBy({ left: -container.offsetWidth, behavior: "smooth" });
+                }
+              }}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-gold text-black flex items-center justify-center hover:bg-gold-soft transition shadow-lg"
+              aria-label="Previous"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
+          {current < maxIndex && (
+            <button
+              onClick={() => {
+                const container = document.getElementById("rooms-carousel");
+                if (container) {
+                  container.scrollBy({ left: container.offsetWidth, behavior: "smooth" });
+                }
+              }}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-gold text-black flex items-center justify-center hover:bg-gold-soft transition shadow-lg"
+              aria-label="Next"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          )}
+          
+          <div className="flex justify-center gap-2 mt-8">
+            {Array.from({ length: maxIndex + 1 }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  const container = document.getElementById("rooms-carousel");
+                  if (container) {
+                    const cardWidth = container.offsetWidth / perViewCount + 40;
+                    container.scrollTo({ left: i * cardWidth, behavior: "smooth" });
+                  }
+                }}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === current ? "bg-gold w-8" : "bg-white/30 w-2 hover:bg-white/60"
+                }`}
+                aria-label={`Go to slide ${i + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -351,7 +541,7 @@ function Services() {
   return (
     <section id="services" className="bg-black py-20 lg:py-28">
       <div className="max-w-7xl mx-auto px-6 lg:px-10 grid lg:grid-cols-2 gap-12 lg:gap-16">
-        <div>
+        <div className="g-reveal" style={{ animationDelay: "0.15s" }}>
           <span
             className="inline-block font-display font-semibold text-sm px-4 py-1.5 rounded"
             style={{ backgroundColor: GOLD, color: "#1a1a1a" }}
@@ -369,11 +559,11 @@ function Services() {
             View All <ArrowUpRight className="w-4 h-4" />
           </a>
         </div>
-        <div className="grid sm:grid-cols-2 gap-6">
+        <div className="grid sm:grid-cols-2 gap-6 g-reveal" style={{ animationDelay: "0.25s" }}>
           {services.map((s) => (
             <div
               key={s.title}
-              className="bg-white rounded-2xl p-6 text-center shadow-lg hover:-translate-y-1 transition-transform"
+              className="g-service-card bg-white rounded-2xl p-6 text-center shadow-lg"
             >
               <s.icon className="w-10 h-10 mx-auto" style={{ color: "#1a1a1a" }} />
               <h3 className="mt-4 font-display font-semibold text-lg" style={{ color: GOLD }}>
@@ -392,20 +582,10 @@ function Services() {
 }
 
 function Testimonials() {
-  const [start, setStart] = useState(0);
-  const perPage = 3;
-  const total = ALL_TESTIMONIALS.length;
-
-  useEffect(() => {
-    const id = setInterval(() => setStart((s) => (s + 1) % total), 5000);
-    return () => clearInterval(id);
-  }, []);
-
-  const visible = Array.from({ length: perPage }, (_, i) => ALL_TESTIMONIALS[(start + i) % total]);
-
+  const scrollItems = [...ALL_TESTIMONIALS, ...ALL_TESTIMONIALS];
   return (
     <section className="py-20 lg:py-28 overflow-hidden" style={{ backgroundColor: "#2E2E2E" }}>
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 text-center">
+      <div className="max-w-7xl mx-auto px-6 lg:px-10 text-center g-reveal" style={{ animationDelay: "0.15s" }}>
         <span
           className="inline-block font-display font-semibold text-sm px-4 py-1.5 rounded"
           style={{ backgroundColor: GOLD, color: "#1a1a1a" }}
@@ -415,13 +595,12 @@ function Testimonials() {
         <h2 className="mt-6 font-display font-bold text-white text-3xl md:text-4xl lg:text-5xl">
           What Client's Say?
         </h2>
+      </div>
 
-        <div className="mt-14 grid md:grid-cols-3 gap-8 transition-all duration-500">
-          {visible.map((t, i) => (
-            <div
-              key={`${start}-${i}`}
-              className="bg-white rounded-2xl p-7 text-left shadow-lg animate-in fade-in slide-in-from-right-4 duration-500"
-            >
+      <div className="g-marquee mt-14 px-6 lg:px-10">
+        <div className="g-marquee-track">
+          {scrollItems.map((t, i) => (
+            <div key={`${t.name}-${i}`} className="g-testi-card bg-white rounded-2xl p-7 text-left min-w-[320px]">
               <Quote className="w-8 h-8" style={{ color: GOLD }} />
               <p className="mt-4 text-neutral-700 text-sm leading-relaxed">{t.text}</p>
               <div className="mt-6 flex items-center gap-3 pt-4">
@@ -431,34 +610,8 @@ function Testimonials() {
             </div>
           ))}
         </div>
-
-        <div className="mt-10 flex items-center justify-center gap-4">
-          <button
-            onClick={() => setStart((s) => (s - 1 + total) % total)}
-            aria-label="Previous"
-            className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:opacity-80"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <div className="flex gap-2">
-            {ALL_TESTIMONIALS.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setStart(i)}
-                aria-label={`Go to ${i + 1}`}
-                className="w-2.5 h-2.5 rounded-full transition-all"
-                style={{ backgroundColor: i === start ? GOLD : "rgba(255,255,255,0.4)" }}
-              />
-            ))}
-          </div>
-          <button
-            onClick={() => setStart((s) => (s + 1) % total)}
-            aria-label="Next"
-            className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:opacity-80"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
+        <div className="g-marquee-fade g-marquee-fade-left" />
+        <div className="g-marquee-fade g-marquee-fade-right" />
       </div>
     </section>
   );
@@ -768,5 +921,67 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="block text-sm font-medium text-neutral-700 mb-1.5">{label}</span>
       {children}
     </label>
+  );
+}
+
+function Carousel({
+  images,
+  interval = 4000,
+}: {
+  images: string[];
+  interval?: number;
+}) {
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(
+      () => setCurrent((prev) => (prev + 1) % images.length),
+      interval,
+    );
+    return () => clearInterval(timer);
+  }, [images.length, interval]);
+
+  return (
+    <div className="relative g-about-img-wrapper g-reveal" style={{ animationDelay: "0.15s", height: "500px" }}>
+      {images.map((img, i) => (
+        <img
+          key={i}
+          src={img}
+          alt="Hotel gallery"
+          className={`w-full h-full object-cover g-about-img absolute inset-0 transition-opacity duration-1000 ${
+            i === current ? "opacity-100" : "opacity-0"
+          }`}
+        />
+      ))}
+      <span className="g-about-pill">★ 5-STAR LUXURY</span>
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+        {images.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              i === current ? "bg-gold w-8" : "bg-white/50 hover:bg-white/80"
+            }`}
+            aria-label={`Slide ${i + 1}`}
+          />
+        ))}
+      </div>
+      <button
+        onClick={() =>
+          setCurrent((prev) => (prev - 1 + images.length) % images.length)
+        }
+        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white backdrop-blur-sm transition"
+        aria-label="Previous slide"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+      <button
+        onClick={() => setCurrent((prev) => (prev + 1) % images.length)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white backdrop-blur-sm transition"
+        aria-label="Next slide"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+    </div>
   );
 }

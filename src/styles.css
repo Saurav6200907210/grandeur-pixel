@@ -59,3 +59,300 @@
     transform: translateY(-1px);
   }
 }
+
+@layer base {
+  .g-hero-bg {
+    animation: grandeur-zoom-slow 10s ease-out forwards;
+    transform: scale(1.12);
+  }
+
+  .g-hero-title,
+  .g-hero-subtitle,
+  .g-hero-cta,
+  .g-reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    animation: grandeur-fade-up 0.8s ease-out forwards;
+  }
+
+  .g-hero-title {
+    animation-delay: 0.25s;
+    text-shadow: 0 0 16px rgba(212, 175, 55, 0.25);
+  }
+
+  .g-hero-subtitle {
+    animation-delay: 0.5s;
+  }
+
+  .g-hero-cta {
+    animation-delay: 0.75s;
+  }
+
+  .g-hero-title {
+    animation-name: grandeur-fade-up, grandeur-shimmer;
+    animation-duration: 0.8s, 4.5s;
+    animation-delay: 0.25s, 1.5s;
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1, infinite;
+    animation-timing-function: ease-out, ease-in-out;
+  }
+
+  .g-reveal-in {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.75s ease-out, transform 0.75s ease-out;
+  }
+
+  .g-room-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    background: #111111;
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+  }
+
+  .g-room-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .g-room-card img {
+    transition: transform 0.7s ease, filter 0.7s ease;
+  }
+
+  .g-room-card:hover img {
+    transform: scale(1.1);
+    filter: brightness(0.7);
+  }
+
+  .g-room-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0.78) 100%);
+    opacity: 0;
+    transition: opacity 0.45s ease;
+    pointer-events: none;
+  }
+
+  .g-room-card:hover::before {
+    opacity: 1;
+  }
+
+  .g-room-card-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.45s ease, transform 0.45s ease;
+    transform: translateY(18px);
+  }
+
+  .g-room-card:hover .g-room-card-overlay {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .g-room-card-overlay button {
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+  }
+
+  .g-room-card:hover .g-room-card-overlay button {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .g-about-img-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.75rem;
+  }
+
+  .g-about-img {
+    transition: transform 0.65s ease, filter 0.65s ease;
+  }
+
+  .g-about-img-wrapper:hover .g-about-img {
+    transform: scale(1.08) rotate(-0.6deg);
+    filter: brightness(0.8);
+  }
+
+  .g-about-img-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 1.75rem;
+    box-shadow: inset 0 0 0 2px rgba(212, 175, 55, 0.65);
+    opacity: 0;
+    transform: scale(0.88);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+    pointer-events: none;
+  }
+
+  .g-about-img-wrapper:hover::after {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .g-about-pill {
+    position: absolute;
+    left: 1.25rem;
+    bottom: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    background: rgba(212, 175, 55, 0.95);
+    color: #1a1a1a;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transform: translateY(18px);
+    opacity: 0;
+    transition: transform 0.45s ease, opacity 0.45s ease;
+  }
+
+  .g-about-img-wrapper:hover .g-about-pill {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .g-marquee {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .g-marquee-track {
+    display: flex;
+    gap: 1.5rem;
+    width: max-content;
+    animation: marquee-scroll 45s linear infinite;
+  }
+
+  .g-marquee:hover .g-marquee-track {
+    animation-play-state: paused;
+  }
+
+  .g-marquee-fade {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 6rem;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .g-marquee-fade-left {
+    left: 0;
+    background: linear-gradient(90deg, rgba(46, 46, 46, 1) 0%, rgba(46, 46, 46, 0) 100%);
+  }
+
+  .g-marquee-fade-right {
+    right: 0;
+    background: linear-gradient(270deg, rgba(46, 46, 46, 1) 0%, rgba(46, 46, 46, 0) 100%);
+  }
+
+  .g-testi-card {
+    min-width: 320px;
+    flex: 0 0 auto;
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+  }
+
+  .g-testi-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 22px 60px rgba(212, 175, 55, 0.18);
+  }
+
+  .g-service-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .g-service-card:hover {
+    transform: translateY(-0.25rem);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
+  }
+
+  .g-cursor-dot,
+  .g-cursor-ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate3d(-50%, -50%, 0);
+    mix-blend-mode: difference;
+    opacity: 0.9;
+  }
+
+  .g-cursor-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #d4af37;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+  }
+
+  .g-cursor-ring {
+    width: 36px;
+    height: 36px;
+    border: 1.5px solid rgba(212, 175, 55, 0.6);
+    border-radius: 50%;
+    transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.25s ease, opacity 0.25s ease;
+    mix-blend-mode: difference;
+  }
+
+  .g-cursor-ring-hover {
+    transform: translate3d(-50%, -50%, 0) scale(1.45);
+    background-color: rgba(212, 175, 55, 0.15);
+  }
+
+  @media (pointer: coarse) {
+    .g-cursor-dot,
+    .g-cursor-ring {
+      display: none;
+    }
+  }
+
+  @keyframes grandeur-zoom-slow {
+    from {
+      transform: scale(1.12);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes grandeur-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes grandeur-shimmer {
+    0%, 100% {
+      text-shadow: 0 0 18px rgba(212, 175, 55, 0.14), 0 0 0 rgba(212, 175, 55, 0);
+    }
+    50% {
+      text-shadow: 0 0 34px rgba(212, 175, 55, 0.35), 0 0 22px rgba(212, 175, 55, 0.2);
+    }
+  }
+
+  @keyframes marquee-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
